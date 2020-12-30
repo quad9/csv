@@ -73,8 +73,7 @@ for org_file in file_paths:
     # df["演奏楽器"]を整理
     tmp_mi = []
     for mi in df["演奏楽器"].fillna("〓"):
-        mi = jaconv.z2h(mi.upper(), kana=False, ascii=True, digit=False)
-        tmp_mi.append(mi)
+        tmp_mi.append(jaconv.z2h(mi.upper(), kana=False, ascii=True, digit=False))
     df["演奏楽器"] = tmp_mi 
 
 
@@ -85,10 +84,15 @@ for org_file in file_paths:
         # if value is np.nan:
             continue
         else:
-            arr = value.split("/")
-            df["出演者名"][i] = df["出演者名"][i] + "▼" + t14i_string.name4justify(arr[0])
-            df["コース名"][i] = df["コース名"][i] + "▼"
-            df["演奏楽器"][i] = df["演奏楽器"][i] + "▼" + arr[1]
+            [name, mi] = value.split("/")
+            # 出演者名につける。
+            df["出演者名"][i] = df["出演者名"][i] + "▼" + t14i_string.name4justify(name)
+            # コース名に変更があることが分かるように印をつける。
+            df["コース名"][i] = df["コース名"][i] + "▼〓"
+            # 楽器の種類を略記に変更して格納する。ピアノ・エレクトーン以外はそのままで。
+            mi = re.sub('.*ピアノ.*', 'P', mi)
+            mi = re.sub('.*エレクトーン.*', 'E', mi)
+            df["演奏楽器"][i] = df["演奏楽器"][i] + "▼" + mi
 
 
     # lib/t14i_regex.csv_reg()に渡してセル内の文字列を整理する。
