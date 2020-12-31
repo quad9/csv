@@ -209,11 +209,11 @@ for org_file in file_paths:
         columns = ['番号', '曲名', '作曲者', '演奏者', '演奏楽器', "担任"],
         sep = ',')
 
-#     #####################
-#     ### オリジナルと中間ファイルを削除する。
-#     # 検証をするときはこれらを外す。
-#     os.remove(org_file)
-#     os.remove(to_tmp_file)
+    #####################
+    ### オリジナルと中間ファイルを削除する。
+    # 検証をするときはこれらを外す。
+    os.remove(org_file)
+    os.remove(to_tmp_file)
 
 # # pprintで見やすく表示。
 # # pprint.pprint(配列)  
