@@ -117,7 +117,7 @@ for org_file in file_paths:
         if name is np.nan:
             tmp_writer.append(np.nan)
         else:
-            tmp_writer.append(t14i_regex.equip_songs_and_writer(name))
+            tmp_writer.append(t14i_regex.re_cellstr(name))
     df["曲名"] = tmp_writer
 
 
@@ -128,7 +128,7 @@ for org_file in file_paths:
         if name is np.nan:
             tmp_writer.append(np.nan)
         else:
-            name = t14i_regex.equip_songs_and_writer(name)
+            name = t14i_regex.re_cellstr(name)
             if name.isascii():
                 tmp_writer.append(name)
             else:
