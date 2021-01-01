@@ -34,14 +34,10 @@ for org_file in file_paths:
     df = pd.read_csv(to_tmp_file, encoding='utf-8')
 
 
-    ###############################################################
-    
-    # 同じグループの縦セルをつまんでいくコードのためのインデックス作成。
-    # それに関連したcolumnの整理　df["演奏者"]、df["演奏楽器"]。
-    # df["番号"]はそのまま使うから整理変更なし。
-
-    ########
-    #### 『play_anchor_index』
+    #####################
+    # 同じグループの縦セルをつまんでいくコードのためのインデックス作成
+    ###
+    # play_anchor_index
     # 処理開始のアンカーとなる配列の作成
     # セルを縦につまむ際のトリガーになるインデックスをdf["番号"]から導き出す。
     play_anchor_index = []
@@ -51,35 +47,18 @@ for org_file in file_paths:
         else:
             play_anchor_index.append(i)
 
-    # 処理ここまでと合図するアンカー生成のための仮アンカー。
-    # 最終行のインデックス番号を追加しておく。
-    # 全体の長さから1引いた数がそれ。
-    tmp_anchor_index = copy.deepcopy(play_anchor_index)
-    tmp_anchor_index.append(len(df) - 1)
-
-    ########
-    #### 『pause_index』
+    ###
+    # pause_anchor_index
     # 処理ここまでと合図するアンカーの配列の作成
-    pause_index = []
-    for i in tmp_anchor_index:
-        # 最初と最後のインデックス以外。
-        if i > 0 and i != tmp_anchor_index[-1]:
-            pause_index.append(i - 1)
-        # 最後のインデックスはそのまま挿入。
-        elif i != 0:
-            pause_index.append(i)
-        # 最初のインデックスは不要。
-        else:
-            continue
+    pause_anchor_index = [n - 1 for n in play_anchor_index[1:]]
+    pause_anchor_index.append(len(df) - 1)
 
-    ########
-    #### 『anchor_index』
-    # 配列の要素数が合わなければ会わない分は処理を無視される。
-    # だからこの一行は不要。
-    # tmp_anchor_index.pop()
+    ###
+    # anchor_index
     anchor_index = []
-    for ta, p in zip(tmp_anchor_index, pause_index):
-        anchor_index.append([ta, p])
+    for play, pause in zip(play_anchor_index, pause_anchor_index):
+        anchor_index.append([play, pause])
+
 
     #####################
     # df["演奏者"]
@@ -195,6 +174,7 @@ for org_file in file_paths:
     df_out["曲名"] = df_out["曲名"].fillna("〓〓〓〓")
     df_out["作曲者"] = df_out["作曲者"].fillna("〓〓〓〓")
 
+
     #####################
     # 成り行きで最後に持ってきた。
     # lib/t14i_regex.csv_reg()に渡してセル内の文字列を整理する。
@@ -209,13 +189,9 @@ for org_file in file_paths:
         columns = ['番号', '曲名', '作曲者', '演奏者', '演奏楽器', "担任"],
         sep = ',')
 
+
     #####################
     ### オリジナルと中間ファイルを削除する。
     # 検証をするときはこれらを外す。
     os.remove(org_file)
     os.remove(to_tmp_file)
-
-# # pprintで見やすく表示。
-# # pprint.pprint(配列)  
-
-

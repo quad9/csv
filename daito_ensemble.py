@@ -20,28 +20,29 @@ file_paths = glob.glob("./_org/*.csv")
 
 for org_file in file_paths:
     #####################
-    # 「ファイル名 + 拡張子」を取得する。
+    # 「ファイル名 + 拡張子」を取得し変数filenameに格納する。
     filename = os.path.basename(org_file)
 
     # create deta frame of pandas
     df_in = pd.read_csv(org_file, encoding = 'utf-8')
 
-    # 制作用の中間ファイルを生成させるた上で、改めてDFを生成して作業の開始。
-    to_tmp_file = os.path.join('./_tmp', filename)    
+    # 制作用の中間ファイルを生成。改めてDFを生成して作業の開始。
+    # ファイルのパスを生成する。
+    to_tmp_file = os.path.join('./_tmp', filename)
+    # 中間ファイルを生成する。
     df_in.to_csv(to_tmp_file,
         encoding = "utf-8",
         index = False,
         columns=["番号", "曲名", "作曲者名", "編曲者名", "グループ名", "氏", "名", "人数", "会場名"],
         sep = ',')
-
+    # 本番作業用のDF生成。
     df = pd.read_csv(to_tmp_file, encoding='utf-8')
 
 
     #####################
     # 同じグループの縦セルをつまんでいくコードのためのインデックス作成
-
     ###
-    # 『play_anchor_index』
+    # play_anchor_index
     # 処理開始のアンカーとなる配列の作成
     # セルを縦につまむ際のトリガーになるインデックスをdf["番号"]から導き出す。
     play_anchor_index = []
@@ -51,138 +52,92 @@ for org_file in file_paths:
         else:
             play_anchor_index.append(i)
 
-    # 処理ここまでと合図するアンカー生成のための仮アンカー。
-    # 最終行のインデックス番号を追加しておく。
-    # 全体の長さから1引いた数がそれ。
-    tmp_anchor_index = copy.deepcopy(play_anchor_index)
-    tmp_anchor_index.append(len(df) - 1)
-
-
+    ###
+    # pause_anchor_index
     # 処理ここまでと合図するアンカーの配列の作成
-    pause_index = []
-    for i in tmp_anchor_index:
-        # 最初と最後のインデックス以外。
-        if i > 0 and i != tmp_anchor_index[-1]:
-            pause_index.append(i - 1)
-        # 最後のインデックスはそのまま挿入。
-        elif i != 0:
-            pause_index.append(i)
-        # 最初のインデックスは不要。
-        else:
-            continue
+    pause_anchor_index = [n - 1 for n in play_anchor_index[1:]]
+    pause_anchor_index.append(len(df) - 1)
 
     ###
-    # 『anchor_index』
-    # 配列の要素数が合わなければ会わない分は処理を無視される。
-    # だからこの一行は不要。
-    # tmp_anchor_index.pop()
+    # anchor_index
     anchor_index = []
-    for ta, p in zip(tmp_anchor_index, pause_index):
-        anchor_index.append([ta, p])
+    for play, pause in zip(play_anchor_index, pause_anchor_index):
+        anchor_index.append([play, pause])
 
 
     #####################
-    # df["作曲者名"]を整理
-    tmp_writer = []
-    for name in df["作曲者名"]:
-        if name is np.nan:
-            tmp_writer.append(np.nan)
-            continue
-        else:
-            name = name.strip()
-            res = re.search("\s", name)
-            if res == None:
-                tmp_writer.append(name)
+    # df["作曲者"], df["編曲者名"]を整理
+    columns = [df["作曲者名"], df["編曲者名"]]
+    column_labels = ["作曲者名", "編曲者名"]
+    for index, col in enumerate(columns):
+        tmp_column = []
+        for name in col:
+            if name is np.nan:
+                tmp_column.append(np.nan)
             else:
-                tmp_writer.append(t14i_string.name4justify(name))
-    df["作曲者名"] = tmp_writer
+                # 文字列の正規化を最初にしておく。
+                name = t14i_regex.re_cellstr(name)
+                # 1セルに複数名の場合の処理
+                if "/" in name:
+                    tmp_names = []
+                    for shimei in name.split("/"):
+                        shimei = shimei.strip()
+                        if shimei.isascii():
+                            tmp_names.append(shimei)
+                        else:
+                            res = re.search("\s", shimei)
+                            if res == None:
+                                tmp_names.append(shimei)
+                            else:
+                                tmp_names.append(t14i_string.name4justify(shimei))
+                    tmp_column.append("/".join(tmp_names))
+                # 1セルに1名の場合の処理
+                else:
+                    name = name.strip()
+                    if name.isascii():
+                        tmp_column.append(name)
+                    else:
+                        tmp_column.append(t14i_string.name4justify(name))
+        # 生成
+        df[column_labels[index]] = tmp_column
 
 
     #####################
-    # df["編曲者名"]を整理
-    tmp_arrangers = []
-    for name in df["編曲者名"]:
-        if name is np.nan:
-            tmp_arrangers.append(np.nan)
-            continue
-        else:
-            name = name.strip()
-            res = re.search("\s", name)
-            if res == None:
-                tmp_arrangers.append(name)
-            else:
-                tmp_arrangers.append(t14i_string.name4justify(name))
-    df["編曲者名"] = tmp_arrangers
-
-
-    #####################
-    # df["出演者名"]を整理
-    df["出演者名"] = df["氏"] + "　" + df["名"]
-    tmp_name = [t14i_string.name7justify(name) for name in df["出演者名"]]
-    df["出演者名"] = tmp_name
+    # df["出演者名"]
+    # df["氏"], df["名"]の整理とdf["出演者名"]の生成
+    # 下準備
+    columns = [df["氏"], df["名"]]
+    column_labels = ["氏", "名"]
+    # 整理
+    for i, col in enumerate(columns):
+        tmp_col = [t14i_regex.re_cellstr(n) for n in col.fillna("〓〓")]
+        # セルに空白がある場合『〓』で埋める。
+        # セル内文字の前後の空白を削除する。
+        df[column_labels[i]] = [name for name in tmp_col]
+    # 生成
+    df["出演者名"] = [t14i_string.name7justify(name) for name in columns[0] + "　" + columns[1]]
 
 
     #####################
     # アンカーを元に同じグループのものを縦につまんでいく。
-    ###
-    # df["出演者名"]
+    # 下準備
+    columns = [df["出演者名"], df["作曲者名"], df["編曲者名"], df["会場名"]]
+    column_labels = ["出演者名", "作曲者名", "編曲者名", "会場名"]    
 
-    # NaNで埋めた行分の配列を生成。
-    players = [np.nan] * len(df)
-    # dfより、配列で処理した方が今は理解できるのでこうした。
-    tmp_players = list(df["出演者名"])
-    for i, scope in zip(play_anchor_index, anchor_index):
-        # 『/』で繋いだ文字列として格納する。
-        players[i] = "/".join(tmp_players[scope[0]:scope[1] + 1])
-    df["出演者名"] = players
-
-    ###
-    # df["作曲者"]
-    # NaNで埋めた行分の配列を生成。
-    writers = [np.nan] * len(df)
-    # dfより、配列で処理した方が今は理解できるのでこうした。
-    tmp_writers = list(df["作曲者名"])
-    for i, scope in zip(play_anchor_index, anchor_index):
-        name_arr = []
-        for name in tmp_writers[scope[0]:scope[1] + 1]:
-            if pd.isnull(name):
-                continue
-            else:
-                name_arr.append(name)
-        writers[i] = "/".join(name_arr)
-    df["作曲者名"] = writers
-    
-    ###
-    # df["編曲者"]
-    # NaNで埋めた行分の配列を生成。
-    arrangers = [np.nan] * len(df)
-    # dfより、配列で処理した方が今は理解できるのでこうした。
-    tmp_arrangers = list(df["編曲者名"])
-    for i, scope in zip(play_anchor_index, anchor_index):
-        name_arr = []
-        for name in tmp_arrangers[scope[0]:scope[1] + 1]:
-            if pd.isnull(name):
-                continue
-            else:
-                name_arr.append(name)
-        arrangers[i] = "/".join(name_arr)
-    df["編曲者名"] = arrangers
-
-    ###
-    # df["会場名"]
-    # NaNで埋めた行分の配列を生成。
-    place = [np.nan] * len(df)
-    # dfより、配列で処理した方が今は理解できるのでこうした。
-    tmp_place = list(df["会場名"])
-    for i, scope in zip(play_anchor_index, anchor_index):
-        name_arr = []
-        for name in tmp_place[scope[0]:scope[1] + 1]:
-            if pd.isnull(name):
-                continue
-            else:
-                name_arr.append(name)
-        place[i] = "/".join(name_arr)
-    df["会場名"] = place
+    for index, column in enumerate(columns):
+        # NaNで埋めた行分の配列を生成。
+        container_colunm = [np.nan] * len(df)
+        # anchor_index
+        for i, scope in zip(play_anchor_index, anchor_index):
+            container = []
+            for name in column[scope[0]: scope[1] + 1]:
+                if pd.isnull(name):
+                    continue
+                else:
+                    container.append(name)
+            # 『/』で繋いだ文字列として格納する。
+            container_colunm[i] = "/".join(container)
+        df[column_labels[index]] = container_colunm
 
 
     #####################
@@ -194,6 +149,7 @@ for org_file in file_paths:
     # セルをつまむ処理をしたので全てNaNで埋められた行が発生する。
     # これらを取り除く処理をする。
     df_out = df_out.dropna(how='all').dropna(how='all', axis = 1)
+
 
     #####################
     # df["番号"]、df["人数"]のフロートを整数に変更して整理する。

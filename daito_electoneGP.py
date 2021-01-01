@@ -143,5 +143,3 @@ df.to_csv(to_gen_file,
 # 検証をするときはこれらを外す。
 os.remove(org_file)
 os.remove(to_tmp_file)
-
-
