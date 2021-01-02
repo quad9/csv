@@ -11,6 +11,7 @@ import sys
 sys.path.append('../lib')
 import ntzreg
 import ntzstr
+import ntzarr
 # from lib import ntzreg  #=> 同じ階層にlibディレクトリがある場合。
 
 
@@ -36,32 +37,6 @@ for org_file in file_paths:
         sep = ',')
     # 本番作業用のDF生成。
     df = pd.read_csv(to_tmp_file, encoding='utf-8')
-
-
-    #####################
-    # 同じグループの縦セルをつまんでいくコードのためのインデックス作成
-    ###
-    # play_anchor_index
-    # 処理開始のアンカーとなる配列の作成
-    # セルを縦につまむ際のトリガーになるインデックスをdf["番号"]から導き出す。
-    play_anchor_index = []
-    for i, num in enumerate(df["番号"]):
-        if pd.isnull(num):
-            continue
-        else:
-            play_anchor_index.append(i)
-
-    ###
-    # pause_anchor_index
-    # 処理ここまでと合図するアンカーの配列の作成
-    pause_anchor_index = [n - 1 for n in play_anchor_index[1:]]
-    pause_anchor_index.append(len(df) - 1)
-
-    ###
-    # anchor_index
-    anchor_index = []
-    for play, pause in zip(play_anchor_index, pause_anchor_index):
-        anchor_index.append([play, pause])
 
 
     #####################
@@ -122,14 +97,15 @@ for org_file in file_paths:
     # 下準備
     columns = [df["出演者名"], df["作曲者名"], df["編曲者名"], df["会場名"]]
     column_labels = ["出演者名", "作曲者名", "編曲者名", "会場名"]    
-
+    play_anchor_index = [arr[0] for arr in ntzarr.pickcell(df["番号"])]
+    anchor_index = ntzarr.pickcell(df["番号"])
     for index, column in enumerate(columns):
         # NaNで埋めた行分の配列を生成。
         container_colunm = [np.nan] * len(df)
         # anchor_index
         for i, scope in zip(play_anchor_index, anchor_index):
             container = []
-            for name in column[scope[0]: scope[1] + 1]:
+            for name in column[scope[0]: scope[1]]:
                 if pd.isnull(name):
                     continue
                 else:
@@ -175,8 +151,8 @@ for org_file in file_paths:
     #####################
     ### オリジナルと中間ファイルを削除する。
     # 検証をするときはこれらを外す。
-    os.remove(org_file)
-    os.remove(to_tmp_file)
+    # os.remove(org_file)
+    # os.remove(to_tmp_file)
 
 # pprintで見やすく表示。
 # pprint.pprint(配列)
