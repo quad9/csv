@@ -37,32 +37,6 @@ for org_file in file_paths:
     df = pd.read_csv(to_tmp_file, encoding='utf-8')
 
 
-    # #####################
-    # # 同じグループの縦セルをつまんでいくコードのためのインデックス作成
-    # ###
-    # # play_anchor_index
-    # # 処理開始のアンカーとなる配列の作成
-    # # セルを縦につまむ際のトリガーになるインデックスをdf["番号"]から導き出す。
-    # play_anchor_index = []
-    # for i, num in enumerate(df["番号"]):
-    #     if pd.isnull(num):
-    #         continue
-    #     else:
-    #         play_anchor_index.append(i)
-
-    # ###
-    # # pause_anchor_index
-    # # 処理ここまでと合図するアンカーの配列の作成
-    # pause_anchor_index = [n - 1 for n in play_anchor_index[1:]]
-    # pause_anchor_index.append(len(df) - 1)
-
-    # ###
-    # # anchor_index
-    # anchor_index = []
-    # for play, pause in zip(play_anchor_index, pause_anchor_index):
-    #     anchor_index.append([play, pause])
-
-
     #####################
     # df["演奏者"]
     # df["氏"], df["名"]の整理とdf["演奏者"]の生成
