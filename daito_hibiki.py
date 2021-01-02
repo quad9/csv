@@ -5,7 +5,9 @@ import pandas as pd
 import numpy as np
 import sys
 sys.path.append('../lib')
-import t14i_regex
+import ntzreg
+# from lib import ntzreg  #=> 同じ階層にlibディレクトリがある場合。
+
 
 # read CSV file
 file_path = glob.glob("./*.csv")
@@ -18,7 +20,7 @@ df_in = pd.read_csv(file, encoding = 'utf-8')
 df = df_in.dropna(how='all')
 
 # lib/t14ireに渡してセル内の文字列を整理する。
-df = t14i_regex.csv_reg(df)
+df = ntzreg.csv_reg(df)
 
 # 演者の氏名を揃える
 tmp_cell = []

@@ -9,11 +9,10 @@ import pandas as pd
 import numpy as np
 import sys
 sys.path.append('../lib')
-import t14i_regex
-import t14i_string
+import ntzreg
+import ntzstr
+# from lib import ntzreg  #=> 同じ階層にlibディレクトリがある場合。
 
-# pprintで見やすく表示。
-# pprint.pprint(配列)
 
 # read CSV file
 file_paths = glob.glob("./_org/*.csv")
@@ -76,7 +75,7 @@ for org_file in file_paths:
                 tmp_column.append(np.nan)
             else:
                 # 文字列の正規化を最初にしておく。
-                name = t14i_regex.re_cellstr(name)
+                name = ntzreg.re_cellstr(name)
                 # 1セルに複数名の場合の処理
                 if "/" in name:
                     tmp_names = []
@@ -89,7 +88,7 @@ for org_file in file_paths:
                             if res == None:
                                 tmp_names.append(shimei)
                             else:
-                                tmp_names.append(t14i_string.name4justify(shimei))
+                                tmp_names.append(ntzstr.name4justify(shimei))
                     tmp_column.append("/".join(tmp_names))
                 # 1セルに1名の場合の処理
                 else:
@@ -97,7 +96,7 @@ for org_file in file_paths:
                     if name.isascii():
                         tmp_column.append(name)
                     else:
-                        tmp_column.append(t14i_string.name4justify(name))
+                        tmp_column.append(ntzstr.name4justify(name))
         # 生成
         df[column_labels[index]] = tmp_column
 
@@ -110,12 +109,12 @@ for org_file in file_paths:
     column_labels = ["氏", "名"]
     # 整理
     for i, col in enumerate(columns):
-        tmp_col = [t14i_regex.re_cellstr(n) for n in col.fillna("〓〓")]
+        tmp_col = [ntzreg.re_cellstr(n) for n in col.fillna("〓〓")]
         # セルに空白がある場合『〓』で埋める。
         # セル内文字の前後の空白を削除する。
         df[column_labels[i]] = [name for name in tmp_col]
     # 生成
-    df["出演者名"] = [t14i_string.name7justify(name) for name in columns[0] + "　" + columns[1]]
+    df["出演者名"] = [ntzstr.name7justify(name) for name in columns[0] + "　" + columns[1]]
 
 
     #####################
@@ -159,8 +158,8 @@ for org_file in file_paths:
 
     #####################
     # 成り行きで最後に持ってきた。
-    # lib/t14i_regex.csv_reg()に渡してセル内の文字列を整理する。
-    df_out = t14i_regex.csv_reg(df_out)
+    # lib/ntzreg.csv_reg()に渡してセル内の文字列を整理する。
+    df_out = ntzreg.csv_reg(df_out)
 
 
     #####################
@@ -178,3 +177,6 @@ for org_file in file_paths:
     # 検証をするときはこれらを外す。
     os.remove(org_file)
     os.remove(to_tmp_file)
+
+# pprintで見やすく表示。
+# pprint.pprint(配列)

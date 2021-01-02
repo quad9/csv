@@ -9,8 +9,10 @@ import pandas as pd
 import numpy as np
 import sys
 sys.path.append('../lib')
-import t14i_regex
-import t14i_string
+import ntzreg
+import ntzstr
+# from lib import ntzreg  #=> 同じ階層にlibディレクトリがある場合。
+
 
 # read CSV file
 file_paths = glob.glob("./_org/*.csv")
@@ -72,7 +74,7 @@ for org_file in file_paths:
         # セル内文字の前後の空白を削除する。
         df[column_labels[i]] = [name.strip() for name in col.fillna("〓〓")]
     # 生成
-    df["演奏者"] = [t14i_string.name7justify(name) for name in columns[0] + "　" + columns[1]]
+    df["演奏者"] = [ntzstr.name7justify(name) for name in columns[0] + "　" + columns[1]]
 
     #####################
     # df["演奏楽器"]
@@ -96,7 +98,7 @@ for org_file in file_paths:
         if name is np.nan:
             tmp_writer.append(np.nan)
         else:
-            tmp_writer.append(t14i_regex.re_cellstr(name))
+            tmp_writer.append(ntzreg.re_cellstr(name))
     df["曲名"] = tmp_writer
 
 
@@ -107,15 +109,15 @@ for org_file in file_paths:
         if name is np.nan:
             tmp_writer.append(np.nan)
         else:
-            name = t14i_regex.re_cellstr(name)
+            name = ntzreg.re_cellstr(name)
             if name.isascii():
                 tmp_writer.append(name)
             else:
                 if "/" in name:
-                    writers = "/".join([t14i_string.name4justify(ins) for ins in name.split("/")])
+                    writers = "/".join([ntzstr.name4justify(ins) for ins in name.split("/")])
                     tmp_writer.append(writers)
                 else:
-                    tmp_writer.append(t14i_string.name4justify(name))
+                    tmp_writer.append(ntzstr.name4justify(name))
     df["作曲者"] = tmp_writer
 
 
@@ -127,7 +129,7 @@ for org_file in file_paths:
         if teacher is np.nan:
             continue
         else:
-            tmp_teacher.append(t14i_string.name4justify(teacher))
+            tmp_teacher.append(ntzstr.name4justify(teacher))
     
     # 最終的にdf["担当講師"]の最初の要素として入れる値を文字列で保持する。
     teachers = "/".join(sorted(list(set(tmp_teacher))))
@@ -177,8 +179,8 @@ for org_file in file_paths:
 
     #####################
     # 成り行きで最後に持ってきた。
-    # lib/t14i_regex.csv_reg()に渡してセル内の文字列を整理する。
-    df_out = t14i_regex.csv_reg(df_out)
+    # lib/ntzreg.csv_reg()に渡してセル内の文字列を整理する。
+    df_out = ntzreg.csv_reg(df_out)
 
 
     # CSVとして書き出し

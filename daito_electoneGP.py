@@ -8,8 +8,10 @@ import pandas as pd
 import numpy as np
 import sys
 sys.path.append('../lib')
-import t14i_regex
-import t14i_string
+import ntzreg
+import ntzstr
+# from lib import ntzreg  #=> 同じ階層にlibディレクトリがある場合。
+
 
 # インデックスは、"番号", "氏名", "学年", "作曲者名・編曲者名", "演奏曲名"
 
@@ -35,7 +37,7 @@ df = pd.read_csv(to_tmp_file, encoding='utf-8')
 #####################
 # df["氏名"]を生成
 # df["出演者名"]をつぶして『本人』と置き換えるための元ネタになるDFを生成する。
-df["氏名"] = [t14i_string.name4justify(name) for name in df["出演者名"]]
+df["氏名"] = [ntzstr.name4justify(name) for name in df["出演者名"]]
 
 
 #####################
@@ -50,7 +52,7 @@ for index, col in enumerate(columns):
             tmp_column.append(np.nan)
         else:
             # 文字列の正規化を最初にしておく。
-            name = t14i_regex.re_cellstr(name)
+            name = ntzreg.re_cellstr(name)
             # 1セルに複数名の場合の処理
             if "/" in name:
                 tmp_names = []
@@ -66,7 +68,7 @@ for index, col in enumerate(columns):
                             else:
                                 tmp_names.append(shimei)
                         else:
-                            tmp_names.append(t14i_string.name4justify(shimei))
+                            tmp_names.append(ntzstr.name4justify(shimei))
                 tmp_column.append("/".join(tmp_names))
             # 1セルに1名の場合の処理
             else:
@@ -77,7 +79,7 @@ for index, col in enumerate(columns):
                     if name.isascii():
                         tmp_column.append(name)
                     else:
-                        tmp_column.append(t14i_string.name4justify(name))
+                        tmp_column.append(ntzstr.name4justify(name))
 
     df[column_labels[index]] = tmp_column
 
@@ -107,7 +109,7 @@ df["番号"] = df["番号"].astype('float').astype('int')
 ###################
 # df["出演者名"]整理
 # df["出演者名"]を7文字揃えにする。
-df["出演者名"] = [t14i_string.name7justify(player) for player in df["出演者名"]]
+df["出演者名"] = [ntzstr.name7justify(player) for player in df["出演者名"]]
 
 
 ###################
@@ -125,7 +127,7 @@ df["学年"] = tmp_grade
 
 ###################
 # df["演奏曲名"]整理
-df["演奏曲名"] = [t14i_regex.re_cellstr(title) for title in df["演奏曲名"]]
+df["演奏曲名"] = [ntzreg.re_cellstr(title) for title in df["演奏曲名"]]
 
 
 ###################

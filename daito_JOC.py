@@ -9,8 +9,10 @@ import pandas as pd
 import numpy as np
 import sys
 sys.path.append('../lib')
-import t14i_regex
-import t14i_string
+import ntzreg
+import ntzstr
+# from lib import ntzreg  #=> 同じ階層にlibディレクトリがある場合。
+
 
 # read CSV file
 file_paths = glob.glob("./_org/*.csv")
@@ -50,7 +52,7 @@ for org_file in file_paths:
         # セル内文字の前後の空白を削除する。
         df[column_labels[i]] = [name.strip() for name in col]
     # 生成
-    df["出演者名"] = [t14i_string.name7justify(name) for name in columns[0] + "　" + columns[1]]
+    df["出演者名"] = [ntzstr.name7justify(name) for name in columns[0] + "　" + columns[1]]
 
     
     #####################
@@ -86,7 +88,7 @@ for org_file in file_paths:
         else:
             [name, mi] = value.split("/")
             # 出演者名につける。
-            df["出演者名"][i] = df["出演者名"][i] + "▼" + t14i_string.name4justify(name)
+            df["出演者名"][i] = df["出演者名"][i] + "▼" + ntzstr.name4justify(name)
             # コース名に変更があることが分かるように印をつける。
             df["コース名"][i] = df["コース名"][i] + "▼〓"
             # 楽器の種類を略記に変更して格納する。ピアノ・エレクトーン以外はそのままで。
@@ -95,8 +97,8 @@ for org_file in file_paths:
             df["演奏楽器"][i] = df["演奏楽器"][i] + "▼" + mi
 
 
-    # lib/t14i_regex.csv_reg()に渡してセル内の文字列を整理する。
-    df = t14i_regex.csv_reg(df)
+    # lib/ntzreg.csv_reg()に渡してセル内の文字列を整理する。
+    df = ntzreg.csv_reg(df)
 
     #####################
     ### 出力する。
