@@ -11,6 +11,7 @@ import sys
 sys.path.append('../lib')
 import ntzreg
 import ntzstr
+import ntzarr
 # from lib import ntzreg  #=> 同じ階層にlibディレクトリがある場合。
 
 
@@ -36,30 +37,30 @@ for org_file in file_paths:
     df = pd.read_csv(to_tmp_file, encoding='utf-8')
 
 
-    #####################
-    # 同じグループの縦セルをつまんでいくコードのためのインデックス作成
-    ###
-    # play_anchor_index
-    # 処理開始のアンカーとなる配列の作成
-    # セルを縦につまむ際のトリガーになるインデックスをdf["番号"]から導き出す。
-    play_anchor_index = []
-    for i, num in enumerate(df["番号"]):
-        if pd.isnull(num):
-            continue
-        else:
-            play_anchor_index.append(i)
+    # #####################
+    # # 同じグループの縦セルをつまんでいくコードのためのインデックス作成
+    # ###
+    # # play_anchor_index
+    # # 処理開始のアンカーとなる配列の作成
+    # # セルを縦につまむ際のトリガーになるインデックスをdf["番号"]から導き出す。
+    # play_anchor_index = []
+    # for i, num in enumerate(df["番号"]):
+    #     if pd.isnull(num):
+    #         continue
+    #     else:
+    #         play_anchor_index.append(i)
 
-    ###
-    # pause_anchor_index
-    # 処理ここまでと合図するアンカーの配列の作成
-    pause_anchor_index = [n - 1 for n in play_anchor_index[1:]]
-    pause_anchor_index.append(len(df) - 1)
+    # ###
+    # # pause_anchor_index
+    # # 処理ここまでと合図するアンカーの配列の作成
+    # pause_anchor_index = [n - 1 for n in play_anchor_index[1:]]
+    # pause_anchor_index.append(len(df) - 1)
 
-    ###
-    # anchor_index
-    anchor_index = []
-    for play, pause in zip(play_anchor_index, pause_anchor_index):
-        anchor_index.append([play, pause])
+    # ###
+    # # anchor_index
+    # anchor_index = []
+    # for play, pause in zip(play_anchor_index, pause_anchor_index):
+    #     anchor_index.append([play, pause])
 
 
     #####################
@@ -142,6 +143,8 @@ for org_file in file_paths:
     tmp_column = [np.nan] * len(df)
     columns = [df["演奏者"], df["演奏楽器"]]
     column_labels = ["演奏者", "演奏楽器"]
+    play_anchor_index = [arr[0] for arr in ntzarr.pickcell(df["番号"])]
+    anchor_index = ntzarr.pickcell(df["番号"])
     for index, col in enumerate(columns):
         for i, scope in zip(play_anchor_index, anchor_index):
             tmp_column[i] = "/".join(col[scope[0]: scope[1] + 1])
