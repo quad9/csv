@@ -50,7 +50,7 @@ for org_file in file_paths:
                 tmp_column.append(np.nan)
             else:
                 # 文字列の正規化を最初にしておく。
-                name = ntzreg.re_cellstr(name)
+                name = ntzreg.cellstr(name)
                 # 1セルに複数名の場合の処理
                 if "/" in name:
                     tmp_names = []
@@ -84,7 +84,7 @@ for org_file in file_paths:
     column_labels = ["氏", "名"]
     # 整理
     for i, col in enumerate(columns):
-        tmp_col = [ntzreg.re_cellstr(n) for n in col.fillna("〓〓")]
+        tmp_col = [ntzreg.cellstr(n) for n in col.fillna("〓〓")]
         # セルに空白がある場合『〓』で埋める。
         # セル内文字の前後の空白を削除する。
         df[column_labels[i]] = [name for name in tmp_col]

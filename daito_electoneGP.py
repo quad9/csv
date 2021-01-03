@@ -52,7 +52,7 @@ for index, col in enumerate(columns):
             tmp_column.append(np.nan)
         else:
             # 文字列の正規化を最初にしておく。
-            name = ntzreg.re_cellstr(name)
+            name = ntzreg.cellstr(name)
             # 1セルに複数名の場合の処理
             if "/" in name:
                 tmp_names = []
@@ -127,7 +127,7 @@ df["学年"] = tmp_grade
 
 ###################
 # df["演奏曲名"]整理
-df["演奏曲名"] = [ntzreg.re_cellstr(title) for title in df["演奏曲名"]]
+df["演奏曲名"] = [ntzreg.cellstr(title) for title in df["演奏曲名"]]
 
 
 ###################

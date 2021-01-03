@@ -73,7 +73,7 @@ for org_file in file_paths:
         if name is np.nan:
             tmp_writer.append(np.nan)
         else:
-            tmp_writer.append(ntzreg.re_cellstr(name))
+            tmp_writer.append(ntzreg.cellstr(name))
     df["曲名"] = tmp_writer
 
 
@@ -84,7 +84,7 @@ for org_file in file_paths:
         if name is np.nan:
             tmp_writer.append(np.nan)
         else:
-            name = ntzreg.re_cellstr(name)
+            name = ntzreg.cellstr(name)
             if name.isascii():
                 tmp_writer.append(name)
             else:
@@ -121,7 +121,7 @@ for org_file in file_paths:
     anchor_index = ntzarr.pickcell(df["番号"])
     for index, col in enumerate(columns):
         for i, scope in zip(play_anchor_index, anchor_index):
-            tmp_column[i] = "/".join(col[scope[0]: scope[1] + 1])
+            tmp_column[i] = "/".join(col[scope[0]: scope[1]])
         df[column_labels[index]] = tmp_column
 
 
@@ -152,12 +152,6 @@ for org_file in file_paths:
 
     df_out["曲名"] = df_out["曲名"].fillna("〓〓〓〓")
     df_out["作曲者"] = df_out["作曲者"].fillna("〓〓〓〓")
-
-
-    #####################
-    # 成り行きで最後に持ってきた。
-    # lib/ntzreg.csv_reg()に渡してセル内の文字列を整理する。
-    df_out = ntzreg.csv_reg(df_out)
 
 
     # CSVとして書き出し
