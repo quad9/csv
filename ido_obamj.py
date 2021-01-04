@@ -1,5 +1,6 @@
 import os
 import glob
+import shutil
 import re
 import pprint
 import pandas as pd
@@ -9,7 +10,7 @@ sys.path.append('../lib')
 import ntzreg
 import ntzstr
 import ntzarr
-import ntzdate
+import ntzdate as dt
 # from lib import t14i_regex  #=> 同じ階層にlibディレクトリがある場合。
 
 # 月刊大阪弁護士会　会員異動　入会者用データを整理するためのコード
@@ -27,67 +28,106 @@ path_to_tmp_file = os.path.join('./_tmp', filename)
 df_in.to_csv(path_to_tmp_file,
     encoding = "utf-8",
     index = False,
-    columns=["カテゴリー", "氏名"],
+    columns=["カテゴリー", "氏名", "入会年月日"],
     sep = ',')
 df = pd.read_csv(path_to_tmp_file, encoding='utf-8')
 
-# 処理をカテゴリーごとに分岐させる前に『写真ファイル名用の氏名』の整理。
-df["写真用氏名"] = [ntzstr.name5justify(name) for name in df["氏名"]]
-df["写真"] = [os.path.basename(filename) for filename in sorted(glob.glob("./_org/*.psd"))]
 
-tmp_photo_name = []
-for name, photo in zip(df["写真用氏名"], df["写真"]):
-  basename, ext = os.path.splitext(photo)
-  tmp_photo_name.append(f"img{basename}_{name}{ext}")
-df["@写真名"] = tmp_photo_name
-print(df["@写真名"])
-
-# # 設定した写真名をファイルに一括でファイル名を上書きする。
-# i = 0
-# for file_name in photo_file_path:
-#   os.rename(file_name, df['@写真名'][i])
-#   i += 1
-# # 処理をカテゴリーごとに分岐させる前に『写真』の整理。
-
-# # 処理をカテゴリーごとに分岐させる前に『df['入会年月日']』の整理。
-# # df['入会年月日']
-# tmp_date = []
-# for date in df['入会年月日']:
-#   y, m, d = [date.strip() for date in str.split("/")]
-#   y = dt.wareky(int(y), int(m), int(d))
-#   tmp_date.append(f'{y}{m}月{d}日付')
-# df['入会年月日'] = tmp_date
-
-
-# 処理をカテゴリーごとに分岐させる前に『』の整理。
-# 処理をカテゴリーごとに分岐させる前に『』の整理。
-# 処理をカテゴリーごとに分岐させる前に『』の整理。
-# 処理をカテゴリーごとに分岐させる前に『』の整理。
-# 処理をカテゴリーごとに分岐させる前に『』の整理。
-
-# # 異動情報のカテゴリーごとに処理を分岐させる。
-# # 処理をつまむためのスライスを作成する。
-# anchor_index = ntzarr.pickcell(df["カテゴリー"])
-# # カテゴリーごとに分岐させて処理をする。
-# for scope in anchor_index:
-#   if scope[scope[0]: scope[1]]:
-#     print("会員異動の処理はここへ書く。")
-#   else:
-#     if "訃報" in df["カテゴリー"][scope[0]]:
-#       print("訃報の連絡はこちらへ。")
-#     else:
-#       print("それ以外の処理はこちらへ書く。")
-
+# セル内の文字列を正規表現で整える。
+for label in df.columns:
+  tmp_df = []
+  for cell in df[label]:
+    if cell is np.nan:
+      tmp_df.append(cell)
+    else:
+      tmp_df.append(ntzreg.cellstr(cell))
+  df[label] = tmp_df
 
 
 ###################
-# CSVに上書きで書き出し完成
-to_gen_file = os.path.join('./_gen', filename)
-df.to_csv(to_gen_file,
-    encoding = "utf-8",
-    index = False,
-    columns=["カテゴリー", "氏名"],
-    sep = '\t')
+# dfの整理
+
+##### 『つまむ』インデックス
+# 『つまむ』元になるインデックス番号とスライス番号の配列
+# 異動情報のカテゴリーごとに処理を分岐させるためのスライスを作成する。
+anchor_index = ntzarr.pickcell(df["カテゴリー"])
+anchor_index_i = ntzarr.pickcell(df["カテゴリー"],"i")
+
+##### df['入会年月日']
+tmp_date = []
+for scope in anchor_index:
+  for date in df["入会年月日"][scope[0]: scope[1]]:
+    year, month, day = [d.strip() for d in date.split("/")]
+    if "訃報" in df["カテゴリー"][scope[0]]:
+      tmp_date.append(f"{dt.wareky(int(year), int(month), int(day))}{month}月{day}日")
+    else:
+      tmp_date.append(f"{dt.wareky(int(year), int(month), int(day))}{month}月{day}日付")
+df["入会年月日"] = tmp_date
+
+##### df["会員名"]
+df["会員名"] = [ntzstr.name5justify(name) for name in df["氏名"]]
+
+
+###################
+# CSVファイルに書き込んでいく。
+# 範囲を示すインデックス作成
+other_index = [anchor_index[1][0], anchor_index[-1][-1]]
+
+for scope in anchor_index:
+  if scope[0] == 0:
+    ##### df["会員名ルビ付"]
+    ##################################################
+    ##################################################
+    ##################################################
+    ##################################################
+    ##################################################
+    ##################################################
+    ##################################################
+    ##################################################
+    ##################################################
+    ##### df["@写真名"]
+    # 写真のファイル名をdfに格納する。
+    df["写真"] = [os.path.basename(filename) for filename in sorted(glob.glob("./_org/*.psd"))]
+    # df["@写真名"]に変換するための仮配列の生成。
+    tmp_photo_labels = []
+    # df["@写真名"]の生成と写真の異動およびリネーム。
+    for member, photo_label in zip(df["会員名"][0: scope[1]], df["写真"][0: scope[1]]):
+      # 準備1
+      # 『_org』ディレクトリにあるpsdファイル名をベース名と拡張子に取り分ける。
+      basename, ext = os.path.splitext(photo_label)
+      # 変更後のファイル名を変数に格納する。
+      renwal_label = f"img{basename}_{member}{ext}"
+      # 準備2
+      # 写真を『_gen』ディレクトリにコピーする。
+      # 『copy2()』メソッドは、コピー元のファイルのメタデータを保存したい場合に使用する。
+      shutil.copy2(f"./_org/{photo_label}", f"./_gen/{photo_label}")
+      # 写真のファイル名を書き換える。
+      # 書き換えたいのは、
+      # 第一引数　『どの階層の何というファイル名』で、
+      # 第二引数　『どの階層の何というファイル名』に書き換えるのか。
+      # という書き方に注意をする。
+      os.rename(f"_gen/{photo_label}", f"_gen/{renwal_label}")
+      # df["@写真名"]に変換する仮配列へ格納する。
+      tmp_photo_labels.append(renwal_label)
+    # df["@写真名"]の生成。
+    df["@写真名"] = tmp_photo_labels + [np.nan] * (len(df) - len(tmp_photo_labels))
+    # 新入会員用のCSVに書き出す。
+    to_gen_file = os.path.join('./_gen', f"新入会員用_{filename}")
+    df[scope[0]: scope[1]].to_csv(to_gen_file,
+        encoding = "utf-16",
+        index = False,
+        columns = ["カテゴリー", "会員名ルビ付", "@写真名", "入会年月日"],
+        sep = ',')
+  else:
+    to_gen_file = os.path.join('./_gen', f"その他_{filename}")
+    df[other_index[0]: other_index[1]].to_csv(to_gen_file,
+        encoding = "utf-8",
+        index = False,
+        columns = ["カテゴリー", "会員名", "入会年月日"],
+        sep = '\t')
+# columns = ('会員名ルビ付','登録番号','入会年月日','事務所','郵便番号','事務所住所１','事務所住所２','TEL','FAX','@写真名'),    
+
+
 
 
 # #####################
@@ -96,36 +136,6 @@ df.to_csv(to_gen_file,
 # os.remove(org_file)
 # os.remove(to_tmp_file)
 
-
-
-# # read CSV file
-# csv_file_path = glob.glob("./*.csv")
-# csv_file = csv_file_path[0]
-# # create deta frame of pandas
-# df_in = pd.read_csv(csv_file, encoding = 'utf-8')
-# # lib/t14ireに渡してセル内の文字列を整理する。<<<<<<<<<<
-# df = t14i_regex.csv_reg(df_in)
-# # >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-
-# # 氏名を5文字で揃える。写真ファイルに付ける氏名用。
-# tmp_name = []
-# for str in df['氏名']:
-#     arr = str.split()
-#     uji = arr[0]
-#     mei = arr[1]
-#     uji_size = len(arr[0])
-#     mei_size = len(arr[1])
-#     if uji_size == 2 and mei_size == 2:
-#         tmp_name.append(f'{arr[0]}　{arr[1]}')
-#     elif uji_size == 1 and mei_size == 2 or uji_size == 2 and mei_size == 1:
-#         tmp_name.append(f'{arr[0]}　　{arr[1]}')
-#     elif uji_size == 1 and mei_size == 3 or uji_size == 3 and mei_size == 1:
-#         tmp_name.append(f'{arr[0]}　{arr[1]}')
-#     elif uji_size == 2 and mei_size == 3 or uji_size == 3 and mei_size == 2:
-#         tmp_name.append(f'{arr[0]}{arr[1]}')
-#     else:
-#         tmp_name.append('')
-# df['氏名写真用'] = tmp_name
 
 # # 氏名にルビを付ける。
 # tmp_df = (df['氏名'] + ' ' + df['備考'])
@@ -145,11 +155,3 @@ df.to_csv(to_gen_file,
 #     else:
 #         tmp_name_ruby.append('')
 # df['氏名ルビ付'] = tmp_name_ruby
-
-
-# # 全ての変更を上書き保存
-# df.to_csv(csv_file,
-#           encoding = "utf-16",
-#           index = False,
-#           columns = ('氏名ルビ付','登録番号','入会年月日','事務所','郵便番号','事務所住所１','事務所住所２','TEL','FAX','@写真名'),
-#           sep = ',')
