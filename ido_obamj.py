@@ -26,10 +26,10 @@ df_in = pd.read_csv(org_file, encoding='utf-8')
 # 制作用の中間ファイルを生成させるた上で、改めてDFを生成して作業の開始。
 path_to_tmp_file = os.path.join('./_tmp', filename)
 df_in.to_csv(path_to_tmp_file,
-    encoding = "utf-8",
-    index = False,
-    columns=["カテゴリー", "氏名", "入会年月日"],
-    sep = ',')
+  encoding = "utf-8",
+  index = False,
+  columns=["カテゴリー", "氏名", "入会年月日", "備考"],
+  sep = ',')
 df = pd.read_csv(path_to_tmp_file, encoding='utf-8')
 
 
@@ -54,15 +54,16 @@ anchor_index = ntzarr.pickcell(df["カテゴリー"])
 anchor_index_i = ntzarr.pickcell(df["カテゴリー"],"i")
 
 ##### df['入会年月日']
-tmp_date = []
+tmp_dates = []
 for scope in anchor_index:
   for date in df["入会年月日"][scope[0]: scope[1]]:
     year, month, day = [d.strip() for d in date.split("/")]
+    wareky_date = f"{dt.wareky(int(year), int(month), int(day))}{month}月{day}日"
     if "訃報" in df["カテゴリー"][scope[0]]:
-      tmp_date.append(f"{dt.wareky(int(year), int(month), int(day))}{month}月{day}日")
+      tmp_dates.append(wareky_date)
     else:
-      tmp_date.append(f"{dt.wareky(int(year), int(month), int(day))}{month}月{day}日付")
-df["入会年月日"] = tmp_date
+      tmp_dates.append(f"{wareky_date}付")
+df["入会年月日"] = tmp_dates
 
 ##### df["会員名"]
 df["会員名"] = [ntzstr.name5justify(name) for name in df["氏名"]]
@@ -72,22 +73,16 @@ df["会員名"] = [ntzstr.name5justify(name) for name in df["氏名"]]
 # CSVファイルに書き込んでいく。
 # 範囲を示すインデックス作成
 other_index = [anchor_index[1][0], anchor_index[-1][-1]]
-
+# df["会員名ルビ付"] = [np.nan] * len(df)
 for scope in anchor_index:
   if scope[0] == 0:
     ##### df["会員名ルビ付"]
-    ##################################################
-    ##################################################
-    ##################################################
-    ##################################################
-    ##################################################
-    ##################################################
-    ##################################################
-    ##################################################
-    ##################################################
+    df["会員名ルビ付"] = ntzstr.name5justify_with_ruby(df["氏名"], df["備考"])
+
     ##### df["@写真名"]
     # 写真のファイル名をdfに格納する。
-    df["写真"] = [os.path.basename(filename) for filename in sorted(glob.glob("./_org/*.psd"))]
+    tmp_photos = [os.path.basename(filename) for filename in sorted(glob.glob("./_org/*.psd"))]
+    df["写真"] = tmp_photos + [np.nan] * ( len(df) - len(tmp_photos) )
     # df["@写真名"]に変換するための仮配列の生成。
     tmp_photo_labels = []
     # df["@写真名"]の生成と写真の異動およびリネーム。
@@ -110,7 +105,8 @@ for scope in anchor_index:
       # df["@写真名"]に変換する仮配列へ格納する。
       tmp_photo_labels.append(renwal_label)
     # df["@写真名"]の生成。
-    df["@写真名"] = tmp_photo_labels + [np.nan] * (len(df) - len(tmp_photo_labels))
+    df["@写真名"] = tmp_photo_labels + [np.nan] * ( len(df) - len(tmp_photo_labels) )
+
     # 新入会員用のCSVに書き出す。
     to_gen_file = os.path.join('./_gen', f"新入会員用_{filename}")
     df[scope[0]: scope[1]].to_csv(to_gen_file,
@@ -118,13 +114,13 @@ for scope in anchor_index:
         index = False,
         columns = ["カテゴリー", "会員名ルビ付", "@写真名", "入会年月日"],
         sep = ',')
-  else:
-    to_gen_file = os.path.join('./_gen', f"その他_{filename}")
-    df[other_index[0]: other_index[1]].to_csv(to_gen_file,
-        encoding = "utf-8",
-        index = False,
-        columns = ["カテゴリー", "会員名", "入会年月日"],
-        sep = '\t')
+#   else:
+#     to_gen_file = os.path.join('./_gen', f"その他_{filename}")
+#     df[other_index[0]: other_index[1]].to_csv(to_gen_file,
+#         encoding = "utf-8",
+#         index = False,
+#         columns = ["カテゴリー", "会員名", "入会年月日"],
+#         sep = '\t')
 # columns = ('会員名ルビ付','登録番号','入会年月日','事務所','郵便番号','事務所住所１','事務所住所２','TEL','FAX','@写真名'),    
 
 
@@ -135,23 +131,3 @@ for scope in anchor_index:
 # # 検証をするときはこれらを外す。
 # os.remove(org_file)
 # os.remove(to_tmp_file)
-
-
-# # 氏名にルビを付ける。
-# tmp_df = (df['氏名'] + ' ' + df['備考'])
-# tmp_name_ruby = []
-# for str in tmp_df:
-#     arr = str.split()
-#     uji_size = len(arr[0])
-#     mei_size = len(arr[1])
-#     if uji_size == 2 and mei_size == 2:
-#         tmp_name_ruby.append(f'[{arr[0]}/{arr[2]}]　[{arr[1]}/{arr[3]}]')
-#     elif uji_size == 1 and mei_size == 2 or uji_size == 2 and mei_size == 1:
-#         tmp_name_ruby.append(f'[{arr[0]}/{arr[2]}]　　[{arr[1]}/{arr[3]}]')
-#     elif uji_size == 1 and mei_size == 3 or uji_size == 3 and mei_size == 1:
-#         tmp_name_ruby.append(f'[{arr[0]}/{arr[2]}]　[{arr[1]}/{arr[3]}]')
-#     elif uji_size == 2 and mei_size == 3 or uji_size == 3 and mei_size == 2:
-#         tmp_name_ruby.append(f'[{arr[0]}/{arr[-2]}][{arr[1]}/{arr[-1]}]')
-#     else:
-#         tmp_name_ruby.append('')
-# df['氏名ルビ付'] = tmp_name_ruby
