@@ -50,16 +50,19 @@ for label in df.columns:
 ##### 『つまむ』インデックス
 # 『つまむ』元になるインデックス番号とスライス番号の配列
 # 異動情報のカテゴリーごとに処理を分岐させるためのスライスを作成する。
+# スライスを使って配列を作りたい場合。
 anchor_index = ntzarr.pickcell(df["カテゴリー"])
-anchor_index_i = ntzarr.pickcell(df["カテゴリー"],"i")
+# インデックス何番目から何番目までで値を指定したい場合。
+anchor_index_i = ntzarr.pickcell(df["カテゴリー"], "i")
 
 ##### df['入会年月日']
 tmp_dates = []
-for scope in anchor_index:
-  for date in df["入会年月日"][scope[0]: scope[1]]:
+# カテゴリーのグループをスライスを使って配列にし、それぞれに処理をしていく。
+for group in anchor_index:
+  for date in df["入会年月日"][group[0]: group[1]]:
     year, month, day = [d.strip() for d in date.split("/")]
     wareky_date = f"{dt.wareky(int(year), int(month), int(day))}{month}月{day}日"
-    if "訃報" in df["カテゴリー"][scope[0]]:
+    if "訃報" in df["カテゴリー"][group[0]]:
       tmp_dates.append(wareky_date)
     else:
       tmp_dates.append(f"{wareky_date}付")
@@ -72,21 +75,28 @@ df["会員名"] = [ntzstr.name5justify(name) for name in df["氏名"]]
 ###################
 # CSVファイルに書き込んでいく。
 # 範囲を示すインデックス作成
+# 決め打ち。
+# 新入会員はインデックス[0]番目。その他のカテゴリーは1番目以降最後までだから。
 other_index = [anchor_index[1][0], anchor_index[-1][-1]]
-# df["会員名ルビ付"] = [np.nan] * len(df)
-for scope in anchor_index:
-  if scope[0] == 0:
+
+for group in anchor_index:
+  # 新入会員用のdf["会員名ルビ付"]、df["@写真名"]の生成と写真の連番串刺し処理。
+  # 決め打ち。
+  # 二次配列をforして、配列を一つずつ処理する。最初に抜き出された配列のインデック[0]番目は値が『0』とわかっているので。
+  if group[0] == 0:
     ##### df["会員名ルビ付"]
     df["会員名ルビ付"] = ntzstr.name5justify_with_ruby(df["氏名"], df["備考"])
 
     ##### df["@写真名"]
     # 写真のファイル名をdfに格納する。
     tmp_photos = [os.path.basename(filename) for filename in sorted(glob.glob("./_org/*.psd"))]
+    # 中間df["写真"]を生成する。写真枚数はコラム数より少ないので、不足分をNaNで埋める。
     df["写真"] = tmp_photos + [np.nan] * ( len(df) - len(tmp_photos) )
     # df["@写真名"]に変換するための仮配列の生成。
     tmp_photo_labels = []
     # df["@写真名"]の生成と写真の異動およびリネーム。
-    for member, photo_label in zip(df["会員名"][0: scope[1]], df["写真"][0: scope[1]]):
+    # 処理をしたグループの分（インデックス番号[0]番）を限定で処理する。
+    for member, photo_label in zip(df["会員名"][0: group[1]], df["写真"][0: group[1]]):
       # 準備1
       # 『_org』ディレクトリにあるpsdファイル名をベース名と拡張子に取り分ける。
       basename, ext = os.path.splitext(photo_label)
@@ -104,23 +114,26 @@ for scope in anchor_index:
       os.rename(f"_gen/{photo_label}", f"_gen/{renwal_label}")
       # df["@写真名"]に変換する仮配列へ格納する。
       tmp_photo_labels.append(renwal_label)
+    # 写真ファイルの移動とリネーム処理が終わってから最後にdfへ値を代入する。
     # df["@写真名"]の生成。
     df["@写真名"] = tmp_photo_labels + [np.nan] * ( len(df) - len(tmp_photo_labels) )
 
     # 新入会員用のCSVに書き出す。
     to_gen_file = os.path.join('./_gen', f"新入会員用_{filename}")
-    df[scope[0]: scope[1]].to_csv(to_gen_file,
+    # コラムを新入会員に限定してCSVの生成。
+    df[group[0]: group[1]].to_csv(to_gen_file,
         encoding = "utf-16",
         index = False,
         columns = ["カテゴリー", "会員名ルビ付", "@写真名", "入会年月日"],
         sep = ',')
-#   else:
-#     to_gen_file = os.path.join('./_gen', f"その他_{filename}")
-#     df[other_index[0]: other_index[1]].to_csv(to_gen_file,
-#         encoding = "utf-8",
-#         index = False,
-#         columns = ["カテゴリー", "会員名", "入会年月日"],
-#         sep = '\t')
+  else:
+    to_gen_file = os.path.join('./_gen', f"その他_{filename}")
+    df[other_index[0]: other_index[1]].to_csv(to_gen_file,
+        encoding = "utf-8",
+        index = False,
+        columns = ["カテゴリー", "会員名", "入会年月日"],
+        sep = '\t')
+columns = ('会員名','入会年月日'),    
 # columns = ('会員名ルビ付','登録番号','入会年月日','事務所','郵便番号','事務所住所１','事務所住所２','TEL','FAX','@写真名'),    
 
 
