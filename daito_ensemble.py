@@ -97,8 +97,8 @@ for org_file in file_paths:
     # 下準備
     columns = [df["出演者名"], df["作曲者名"], df["編曲者名"], df["会場名"]]
     column_labels = ["出演者名", "作曲者名", "編曲者名", "会場名"]    
-    play_anchor_index = [arr[0] for arr in ntzarr.pickcell(df["番号"])]
     anchor_index = ntzarr.pickcell(df["番号"])
+    play_anchor_index = [range[0] for range in anchor_index]
     for index, column in enumerate(columns):
         # NaNで埋めた行分の配列を生成。
         container_colunm = [np.nan] * len(df)
