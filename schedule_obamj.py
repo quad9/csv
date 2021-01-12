@@ -5,6 +5,7 @@ import pandas as pd
 import sys
 sys.path.append('../lib')
 import t14i_regex
+import ntzstr
 # 同じ階層にlibディレクトリがある場合。
 # from lib import t14i_regex
 
@@ -44,3 +45,8 @@ df.to_csv(file,
     index = False,
     columns = ['日時', '単位', '内容', '備考'],
     sep = '\t')
+
+
+for cell in df['実施日']:
+    cell = re.sub('(\d\d?)月(\d\d?)日（([月火水木金土日])）', r'\1/\2\3', cell)
+    tmp_date.append(cell)
