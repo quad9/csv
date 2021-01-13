@@ -75,11 +75,6 @@ df["会員名"] = [ntzstr.name5justify(name) for name in df["氏名"]]
 
 
 ##### df["会員名ルビ付"], df["入会年月日"], df["@写真名"]
-# print(len(df)) =>        23
-# print(anchor_index) =>   [[0, 5], [5, 9], [9, 14], [14, 23]]
-# print(anchor_index_i) => [[0, 4], [5, 8], [9, 13], [14, 22]]
-# print(other_index) =>    [5, 23]
-
 for group in anchor_index:
   # 新入会員用のdf["会員名ルビ付"]、df["@写真名"]の生成と写真の連番串刺し処理。
   # 決め打ち。
@@ -141,10 +136,8 @@ for group in anchor_index:
 ##### df["その他の会員名"]
 tmp_others = []
 for name in df["会員名"][other_index[0]: other_index[1]]:
-  print(name)
   tmp_others.append(f"{name}氏")
 df["その他の会員名"] = [np.nan] * (anchor_index[0][1] - anchor_index[0][0]) + tmp_others
-print(df["その他の会員名"])
 
 
 ##### df["退会年月日"]
@@ -200,5 +193,6 @@ for group in anchor_index:
 # #####################
 # ### オリジナルと中間ファイルを削除する。
 # # 検証をするときはこれらを外す。
-# os.remove(org_file)
-# os.remove(to_tmp_file)
+os.remove(path_to_tmp_file)
+shutil.rmtree("./_org")
+os.mkdir("./_org")
