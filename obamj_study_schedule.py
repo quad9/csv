@@ -136,10 +136,21 @@ for require, admission, application in zip(df["参加資格等"], df["参加費"
 df["資格"] = tmp_require
 
 
+########## df["備考"]の生成
+df["備考"] = "◆" + df["主催者"] + "▼□" + df["資格"] + "▼■" + df["実施場所"] + "▼" + df["一時保育"]
+
+
 ##### 出力
 path_to_gen_file = os.path.join("./_gen", f"gene_{filename}")
 df.to_csv(path_to_gen_file,
     encoding = "utf-8",
     index = False,
-    columns = ["日時", "単位数", "内容・講師", "資格"],
+    columns = ["日時", "単位数", "内容・講師", "備考"],
     sep = "\t")
+
+
+#####################
+### オリジナルと中間ファイルを削除する。
+# 検証をするときはこれらを外す。
+# os.remove(org_file)
+# os.remove(to_tmp_file)
