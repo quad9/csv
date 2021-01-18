@@ -39,8 +39,6 @@ df = pd.read_csv(path_to_tmp_file, encoding="utf-8")
 df = df.dropna(how='all').dropna(how='all', axis = 1)
 
 
-
-
 ########## セル内の文字列を正規表現で整形
 # セル内が空欄の時に起こるエラー　int, floatが『elif cell is np.nan:』の
 # 条件分岐で上手く作用してくれないので、『if isinstance(cell, 性質):』で解決している。
@@ -58,6 +56,24 @@ for label in df.columns:
     df[label] = tmp_df
 
 
+df["カテゴリー"] = ntzarr.pickcell(df["カテゴリー"])
+
+# categories = np.unique(df["カテゴリー"], return_index=True)
+# c_start = list(np.unique(categories[1]))
+# c_puase = c_start[1:] + [len(df)]
+
+# slice_scape = []
+# for start, pause in zip(c_start, c_puase):
+#     slice_scape.append([start, pause])
+
+# names = [np.nan] * len(df)
+# for scope in slice_scape:
+#     names[scope[0]] = "、".join(df["名前"][scope[0]: scope[1]])
+
+# df["名前"] = names
+# pprint.pprint(df["名前"])
+
+
 ##### 出力
 path_to_gen_file = os.path.join("./_gen", f"gene_{filename}")
 df.to_csv(path_to_gen_file,
@@ -66,22 +82,6 @@ df.to_csv(path_to_gen_file,
     columns = ["カテゴリー", "名前"],
     sep = "\t")
 
-
-
-categories = np.unique(df["カテゴリー"], return_index=True)
-c_start = list(np.unique(categories[1]))
-c_puase = c_start[1:] + [len(df)]
-
-slice_scape = []
-for start, pause in zip(c_start, c_puase):
-    slice_scape.append([start, pause])
-
-names = [np.nan] * len(df)
-for scope in slice_scape:
-    names[scope[0]] = "、".join(df["名前"][scope[0]: scope[1]])
-
-df["名前"] = names
-pprint.pprint(df["名前"])
 
 
 # ########## dfの空欄を『〓』で埋めておく。
