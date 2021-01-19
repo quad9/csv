@@ -26,7 +26,7 @@ for file in file_path:
     df_in = pd.read_csv(file, encoding = 'utf-8')
     df = t14i_regex.csv_reg(df_in)
     df.to_csv(file,
-                  encoding = "utf-8",
-                  header = responce,
-                  index = False,
-                  sep = '\t')
+            encoding = "utf-8",
+            header = responce,
+            index = False,
+            sep = '\t')
