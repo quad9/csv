@@ -1,22 +1,121 @@
+import pandas as pd
+import numpy as np
+import csv
 import calendar
 import pprint
 
-
+# # 任意の月のカレンダー出力
 # print(calendar.month(2021, 1))
-#     January 2019
-# Mo Tu We Th Fr Sa Su
-#     1  2  3  4  5  6
-#  7  8  9 10 11 12 13
-# 14 15 16 17 18 19 20
-# 21 22 23 24 25 26 27
-# 28 29 30 31
-# 
 
-# print(type(calendar.month(2019, 1)))
-# <class 'str'>
+# =>
+#     January 2021
+# Mo Tu We Th Fr Sa Su
+#              1  2  3
+#  4  5  6  7  8  9 10
+# 11 12 13 14 15 16 17
+# 18 19 20 21 22 23 24
+# 25 26 27 28 29 30 31
+
+
+# # このインスタンスはString型
+# print(type(calendar.month(2021, 1)))
+
+# => <class 'str'>
+
+
+# # 年間カレンダーの出力
+# print(calendar.calendar(2021))
+
+# =>
+#                                   2021
+
+#       January                   February                   March
+# Mo Tu We Th Fr Sa Su      Mo Tu We Th Fr Sa Su      Mo Tu We Th Fr Sa Su
+#              1  2  3       1  2  3  4  5  6  7       1  2  3  4  5  6  7
+#  4  5  6  7  8  9 10       8  9 10 11 12 13 14       8  9 10 11 12 13 14
+# 11 12 13 14 15 16 17      15 16 17 18 19 20 21      15 16 17 18 19 20 21
+# 18 19 20 21 22 23 24      22 23 24 25 26 27 28      22 23 24 25 26 27 28
+# 25 26 27 28 29 30 31                                29 30 31
+
+#        April                      May                       June
+# Mo Tu We Th Fr Sa Su      Mo Tu We Th Fr Sa Su      Mo Tu We Th Fr Sa Su
+#           1  2  3  4                      1  2          1  2  3  4  5  6
+#  5  6  7  8  9 10 11       3  4  5  6  7  8  9       7  8  9 10 11 12 13
+# 12 13 14 15 16 17 18      10 11 12 13 14 15 16      14 15 16 17 18 19 20
+# 19 20 21 22 23 24 25      17 18 19 20 21 22 23      21 22 23 24 25 26 27
+# 26 27 28 29 30            24 25 26 27 28 29 30      28 29 30
+#                           31
+
+#         July                     August                  September
+# Mo Tu We Th Fr Sa Su      Mo Tu We Th Fr Sa Su      Mo Tu We Th Fr Sa Su
+#           1  2  3  4                         1             1  2  3  4  5
+#  5  6  7  8  9 10 11       2  3  4  5  6  7  8       6  7  8  9 10 11 12
+# 12 13 14 15 16 17 18       9 10 11 12 13 14 15      13 14 15 16 17 18 19
+# 19 20 21 22 23 24 25      16 17 18 19 20 21 22      20 21 22 23 24 25 26
+# 26 27 28 29 30 31         23 24 25 26 27 28 29      27 28 29 30
+#                           30 31
+
+#       October                   November                  December
+# Mo Tu We Th Fr Sa Su      Mo Tu We Th Fr Sa Su      Mo Tu We Th Fr Sa Su
+#              1  2  3       1  2  3  4  5  6  7             1  2  3  4  5
+#  4  5  6  7  8  9 10       8  9 10 11 12 13 14       6  7  8  9 10 11 12
+# 11 12 13 14 15 16 17      15 16 17 18 19 20 21      13 14 15 16 17 18 19
+# 18 19 20 21 22 23 24      22 23 24 25 26 27 28      20 21 22 23 24 25 26
+# 25 26 27 28 29 30 31      29 30                     27 28 29 30 31
+
+
+# # 週の始まりの曜日を指定する。メソッドを充てて指定しないとデフォルトは月曜日。
+#   "calendar.MONDAY"で帰ってくるのは　=> 0
+#   "calendar.SUNDAY"で帰ってくるのは　=> 6
+#   整数を引数として入れてやってもよい。
+# calendar.setfirstweekday(calendar.SUNDAY)
+# # このインスタンスはイミュータブル。そのまま出力する。
+# print(calendar.month(2021, 1))
+
+
+# # 日本語にローカライズドさせる。
+# ltc_ja = calendar.LocaleTextCalendar(locale='ja_jp')
+# print(ltc_ja.formatmonth(2021, 1))
+
+
+# # 一月分のカレンダーを配列として出力する。
+# calendar.setfirstweekday(calendar.SUNDAY)
+# calendar.monthcalendar(2021, 1)
+
+
+###################
+# # 下準備
+# # ファイルは1枚だけが前提。
+# org_file = glob.glob("./_org/*.csv")[0]
+# filename = os.path.basename(org_file)
+# # create deta frame of pandas
+# df_in = pd.read_csv(org_file, encoding='utf-8')
+
+# # 制作用の中間ファイルを生成させるた上で、改めてDFを生成して作業の開始。
+# path_to_tmp_file = os.path.join('./_tmp', filename)
+# df_in.to_csv(path_to_tmp_file,
+#     encoding = "utf-8",
+#     index = False,
+#     columns=["日時", "時間", "内容", "場所", "備考"],
+#     sep = ',') 
+# df = pd.read_csv(path_to_tmp_file, encoding = "utf-8")
+
 
 calendar.setfirstweekday(calendar.SUNDAY)
-pprint.pprint(calendar.monthcalendar(2021, 1))
+calendar.monthcalendar(2021, 1)
+
+df = pd.DataFrame(calendar.monthcalendar(2021, 1),
+                  columns = ["日", "月", "火", "水", "木", "金", "土"])
+print(df)
+
+# CSVとして書き出し
+# filename = "sample.csv"
+# to_gen_file = os.path.join('./_gen', filename)
+# df_out.to_csv(to_gen_file,
+#     encoding = "utf-8",
+#     index = False,
+#     columns = ["日", "月", "火", "水", "木", "金", "土"],
+#     sep = ',')
 
 
 # #とあるシステムのカレンダーマスタを用意する。
@@ -155,24 +254,6 @@ pprint.pprint(calendar.monthcalendar(2021, 1))
 # import csv
 # from qreki import Kyureki
 # import t14i_regex
-
-
-# ###################
-# # 下準備
-# # ファイルは1枚だけが前提。
-# org_file = glob.glob("./_org/*.csv")[0]
-# filename = os.path.basename(org_file)
-# # create deta frame of pandas
-# df_in = pd.read_csv(org_file, encoding='utf-8')
-
-# # 制作用の中間ファイルを生成させるた上で、改めてDFを生成して作業の開始。
-# path_to_tmp_file = os.path.join('./_tmp', filename)
-# df_in.to_csv(path_to_tmp_file,
-#     encoding = "utf-8",
-#     index = False,
-#     columns=["日時", "時間", "内容", "場所", "備考"],
-#     sep = ',') 
-# df = pd.read_csv(path_to_tmp_file, encoding = "utf-8")
 
 
 
