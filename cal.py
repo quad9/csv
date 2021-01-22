@@ -1,3 +1,4 @@
+import os
 import pandas as pd
 import numpy as np
 import csv
@@ -101,20 +102,45 @@ import pprint
 # df = pd.read_csv(path_to_tmp_file, encoding = "utf-8")
 
 
-calendar.setfirstweekday(calendar.SUNDAY)
-calendar.monthcalendar(2021, 1)
+# calendar.monthcalendar(2021, 1)
+# calendar.monthcalendar(2021, 1)
 
-df = pd.DataFrame(calendar.monthcalendar(2021, 1),
-                  columns = ["日", "月", "火", "水", "木", "金", "土"])
-print(df)
+# df = pd.DataFrame(calendar.yeardayscalendar(2021),
+#                   columns = ["日", "月", "火", "水", "木", "金", "土"])
 
-# CSVとして書き出し
-# filename = "sample.csv"
+def createcal(year):
+  year_dfs = []
+  calendar.setfirstweekday(calendar.SUNDAY)
+  for month in range(1,13):
+    print(pd.DataFrame(calendar.monthcalendar(year, month),
+                      columns = ["日", "月", "火", "水", "木", "金", "土"]))
+  # return year_dfs
+
+createcal(2021)
+    
+
+
+
+
+
+
+# print(df)
+# cal = calendar.Calendar(firstweekday=6)
+# pprint.pprint(cal.yeardayscalendar(2021))
+# pprint.pprint(cal.yeardays2calendar(2021))
+
+
+# df = pd.DataFrame(cal.yeardayscalendar(2021),
+#                   columns = ["日", "月", "火", "水", "木", "金", "土"])
+# print(df)
+
+# # CSVとして書き出し
+# filename = "calender.csv"
 # to_gen_file = os.path.join('./_gen', filename)
-# df_out.to_csv(to_gen_file,
+# df.to_csv(to_gen_file,
 #     encoding = "utf-8",
 #     index = False,
-#     columns = ["日", "月", "火", "水", "木", "金", "土"],
+#     # columns = ["日", "月", "火", "水", "木", "金", "土"],
 #     sep = ',')
 
 
@@ -237,7 +263,7 @@ print(df)
 
 
 
-# import os
+
 # import glob
 # import shutil
 # import jaconv
