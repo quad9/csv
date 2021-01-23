@@ -112,11 +112,11 @@ def createcal(year):
   year_dfs = []
   calendar.setfirstweekday(calendar.SUNDAY)
   for month in range(1,13):
-    print(pd.DataFrame(calendar.monthcalendar(year, month),
+    year_dfs.append(pd.DataFrame(calendar.monthcalendar(year, month),
                       columns = ["日", "月", "火", "水", "木", "金", "土"]))
-  # return year_dfs
+  return year_dfs
 
-createcal(2021)
+pprint.pprint(createcal(2021))
     
 
 
