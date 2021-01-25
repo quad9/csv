@@ -22,6 +22,10 @@ org_file = glob.glob("./_org/*.csv")[0]
 filename = os.path.basename(org_file)
 # create deta frame of pandas
 df_in = pd.read_csv(org_file, encoding = "utf-8")
+# # 空行空列を取り除く処理をする。
+# df_in = df_in.dropna(how='all').dropna(how='all', axis = 1)
+# 空行を取り除く処理をする。
+df_in = df_in.dropna(how='all')
 
 
 ########## 中間ファイル作成
@@ -87,6 +91,10 @@ for date in df["実施日"]:
 df["実施日"] = tmp_date
 
 
+########## df["単位数"]の変換
+df["単位数"] = df["単位数"].astype('float').astype('int')
+
+
 ########## df["実施日"]の変換
 tmp_time = []
 for time in df["実施時間"]:
@@ -112,7 +120,6 @@ tmp_contents = []
 for title, teacher in zip(df["研修等の名称"], df["講師"]):
     tmp_contents.append(f"{title}▼◇{teacher}")
 df["内容・講師"] = tmp_contents
-
 
 
 ########## df["完全事前申込制"]の整理
