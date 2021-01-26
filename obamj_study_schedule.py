@@ -60,6 +60,7 @@ for label in df.columns:
         elif cell is np.nan:
             tmp_df.append(cell)
         else:
+            # tmp_df.append(ntzreg.cellstr(cell))
             tmp_df.append(ntzreg.cellstr(cell, "zs"))
     df[label] = tmp_df
 
@@ -109,8 +110,8 @@ df["日時"] = df["区分・専門・分野"] + "▼" + df["実施日"] + "▼" 
 
 tmp_teacher = []
 for cell in df["講師"]:
-    # 行内改行がある場合は『〓』を入れて知らせる。
-    cell = re.sub("▽", "〓", cell)
+    # 行内改行がある場合は『、』を入れる。
+    cell = re.sub("▽", "、", cell)
     tmp_teacher.append(cell)
 df["講師"] = tmp_teacher
 
