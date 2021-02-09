@@ -36,7 +36,7 @@ for org_file in file_paths:
 
     df = pd.read_csv(to_tmp_file, encoding='utf-8')
 
-
+    
     #####################
     # df["演奏者"]
     # df["氏"], df["名"]の整理とdf["演奏者"]の生成
