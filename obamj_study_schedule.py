@@ -31,11 +31,13 @@ df_in = df_in.dropna(how='all')
 ########## 中間ファイル作成
 # 制作用の中間ファイルを生成させるた上で、改めてDFを生成して作業の開始。
 path_to_tmp_file = os.path.join("./_tmp", filename)
+
 df_in.to_csv(path_to_tmp_file,
     encoding = "utf-8",
     index = False,
     columns=["実施日", "実施時間", "単位数", "実施形態", "区分", "専門", "分野別", "研修等の名称", "講師", "主催者", "実施場所", "参加費", "参加資格等", "一時保育", "完全事前申込制"],
     sep = ",")
+    
 df = pd.read_csv(path_to_tmp_file, encoding="utf-8")
 
 

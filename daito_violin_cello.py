@@ -31,10 +31,12 @@ for org_file in file_paths:
     df_in.to_csv(to_tmp_file,
         encoding = "utf-8",
         index = False,
-        columns=["番号", "曲", "名前", "楽器"],
+        columns=["順", "氏名", "楽器", "演奏曲", "作曲者", "ピアノ伴奏者"],
         sep = ',')
 
     df = pd.read_csv(to_tmp_file, encoding='utf-8')
+
+    df = df.dropna(how='all').dropna(how='all', axis = 1)
 
     ########## セル内の文字列を正規表現で整形
     # セル内が空欄の時に起こるエラー　int, floatが『elif cell is np.nan:』の
@@ -51,10 +53,14 @@ for org_file in file_paths:
             else:
                 # 入ってきたcellに正規化を充てる。
                 cell = ntzreg.cellstr(cell)
-                if label == "名前":
-                    # ラベルが名前なら文字揃え処理をする。
-                    cell = ntzstr.name5justify(cell)
+                if label == "氏名":
+                    # ラベルが氏名なら文字揃え処理をする。
+                    cell = ntzstr.name7justify(cell)
                     tmp_df.append(cell)
+                elif label == "ピアノ伴奏者":
+                    # ラベルがピアノ伴奏者なら文字揃え処理をする。
+                    cell = ntzstr.name7justify(cell)
+                    tmp_df.append(cell)                    
                 else:
                     # それ以外は仮dfへそのまま格納。
                     tmp_df.append(cell)
@@ -64,9 +70,10 @@ for org_file in file_paths:
     ###################
     ##### 『つまむ』インデックスの生成
     # 『つまむ』元になるインデックス番号とスライス番号の配列
-    anchor_index = ntzarr.pickcell(df["番号"])
+    anchor_index = ntzarr.pickcell(df["順"])
     # 出力用のDateFrameを生成させておく。
-    df_out = pd.DataFrame(columns = ["順番", "演奏曲", "演奏者", "使用楽器"])
+    df_out = pd.DataFrame(columns = ["順", "氏名", "楽器", "演奏曲", "作曲者", "ピアノ伴奏者"])
+
     # 処理開始
     for label, out_label in zip(df.columns, df_out.columns):
         # 仮のコラム生成
@@ -81,11 +88,13 @@ for org_file in file_paths:
                     line.append(content)
             tmp_col.append("▽".join(line))
         df_out[out_label] = tmp_col
-    
-    # 番号だけ別処理する。
-    tmp_arr = [int(num) for num in df["番号"].dropna(how="any")]
-    df_out["順番"] = tmp_arr
 
+    # # 番号だけ別処理する。
+    # # tmp_arr = [int(num) for num in df["順"].dropna(how="any")]
+    # # df_out["順"] = tmp_arr
+    # print(len(df_out["順"]))
+    # print(df_out["順"])
+    # # print(len(df_out["演奏曲"]))
 
     #####################
     # CSVとして書き出し
@@ -93,12 +102,12 @@ for org_file in file_paths:
     df_out.to_csv(to_gen_file,
         encoding = "utf-8",
         index = False,
-        columns = ["順番", "演奏曲", "演奏者", "使用楽器"],
+        columns = ["順", "演奏曲", "作曲者", "楽器", "氏名", "ピアノ伴奏者"],
         sep = '\t')
 
 
-    #####################
-    ### オリジナルと中間ファイルを削除する。
-    # 検証をするときはこれらを外す。
-    os.remove(org_file)
-    os.remove(to_tmp_file)
+    # # #####################
+    # # ### オリジナルと中間ファイルを削除する。
+    # # # 検証をするときはこれらを外す。
+    # # os.remove(org_file)
+    # # os.remove(to_tmp_file)
