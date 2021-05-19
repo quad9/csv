@@ -36,7 +36,7 @@ for org_file in file_paths:
     df_in.to_csv(to_tmp_file,
         encoding = "utf-8",
         index = False,
-        columns=["No", "生徒名", "曲名", "作曲者", "演奏楽器"],
+        columns=["番号", "生徒名", "曲名", "作曲者"],
         sep = ',')
 
     # 不要な行列を削除したcsvから本番作業用をDF生成。
@@ -71,7 +71,7 @@ for org_file in file_paths:
     df.to_csv(to_gen_file,
         encoding = "utf-8",
         index = False,
-        columns = ["No", "生徒名", "曲名", "作曲者", "演奏楽器"],
+        columns = ["番号", "生徒名", "曲名", "作曲者"],
         sep = ',')
 
     #####################
